@@ -17,7 +17,9 @@ class Env(ABC):
         self.env_config = env_config
 
     @abstractmethod
-    async def reset(self, config: 'RolloutInferRequest') -> Tuple[str, Dict[str, Any], str]:
+    async def reset(
+        self, config: "RolloutInferRequest"
+    ) -> Tuple[str, Dict[str, Any], str]:
         """Reset environment to initial state.
 
         Args:
@@ -32,7 +34,7 @@ class Env(ABC):
         pass
 
     @abstractmethod
-    async def step(self, action: 'Messages') -> Tuple[str, float, bool, Dict[str, Any]]:
+    async def step(self, action: "Messages") -> Tuple[str, float, bool, Dict[str, Any]]:
         """Execute one step in the environment.
 
         Args:
@@ -53,7 +55,9 @@ class Env(ABC):
         pass
 
 
-def count_qwen_tokens(messages: List[Dict[str, Any]], max_tokens: int = 2048) -> Tuple[int, bool]:
+def count_qwen_tokens(
+    messages: List[Dict[str, Any]], max_tokens: int = 2048
+) -> Tuple[int, bool]:
     """
     Calculate token count for Qwen messages and check if it exceeds the 16k limit
 
@@ -66,30 +70,38 @@ def count_qwen_tokens(messages: List[Dict[str, Any]], max_tokens: int = 2048) ->
     """
     try:
         from modelscope import AutoTokenizer
-        model_name = 'Qwen/Qwen2.5-3B-Instruct'
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+
+        model_name = "Qwen/Qwen2.5-3B-Instruct"
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            use_fast=False,
+        )
+        text = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=False
+        )
         token_count = len(tokenizer.encode(text))
 
         return token_count, token_count >= max_tokens
 
     except Exception as e:
-        print(f'Token calculation failed: {e}')
+        print(f"Token calculation failed: {e}")
         return 0, False
 
 
 class SimpleMathEnv(Env):
-    tips_prompt = 'The answer is not correct, It seems You made a mistake, you need to recheck very carefully.'
+    tips_prompt = "The answer is not correct, It seems You made a mistake, you need to recheck very carefully."
 
     def __init__(self, env_config):
         super().__init__(env_config)
         self.acc_func = MathAccuracy()
-        self.solution = ''
+        self.solution = ""
 
-    async def reset(self, config: 'RolloutInferRequest') -> Tuple[str, Dict[str, Any], str]:
-        obs = config.data_dict['problem']
+    async def reset(
+        self, config: "RolloutInferRequest"
+    ) -> Tuple[str, Dict[str, Any], str]:
+        obs = config.data_dict["problem"]
         info = {}
-        self.solution = config.data_dict['solution']
+        self.solution = config.data_dict["solution"]
         system_prompt = """A conversation between User and Assistant.
         The user asks a question, and the Assistant solves it.
         The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -98,22 +110,22 @@ class SimpleMathEnv(Env):
         """
         return obs, info, system_prompt
 
-    async def step(self, action: 'Messages') -> Tuple[str, float, bool, Dict[str, Any]]:
+    async def step(self, action: "Messages") -> Tuple[str, float, bool, Dict[str, Any]]:
         next_obs = self.tips_prompt
 
         reward = 0.0
         done = False
         info = {}
-        acc = self.acc_func([action[-1]['content']], [self.solution])[0]
+        acc = self.acc_func([action[-1]["content"]], [self.solution])[0]
         if count_qwen_tokens(action)[1]:
             done = True
-            info['stop_reason'] = 'Exceeded maximum length'
+            info["stop_reason"] = "Exceeded maximum length"
 
         if acc == 1:
             done = True
             reward = 1.0
-            info['stop_reason'] = 'Correct'
-        info['math_reward'] = reward
+            info["stop_reason"] = "Correct"
+        info["math_reward"] = reward
         return next_obs, reward, done, info
 
     async def close(self):
@@ -121,4 +133,4 @@ class SimpleMathEnv(Env):
 
 
 # Registry for environments
-envs = {'math_env': SimpleMathEnv}
+envs = {"math_env": SimpleMathEnv}

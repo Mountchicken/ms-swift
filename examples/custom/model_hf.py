@@ -26,8 +26,10 @@ def get_function(model_dir: str,
                  load_model: bool = True,
                  **kwargs):
     # ref: https://github.com/modelscope/ms-swift/blob/main/swift/llm/model/register.py#L182
-    model_config = AutoConfig.from_pretrained(model_dir, trust_remote_code=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
+    model_config = AutoConfig.from_pretrained(
+        model_dir, use_fast=False, trust_remote_code=True
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False,trust_remote_code=True)
     tokenizer.pad_token_id = tokenizer.eos_token_id
     model = None
     if load_model:

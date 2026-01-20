@@ -1,6 +1,6 @@
 CUDA_VISIBLE_DEVICES=0 \
 swift export \
-    --model Qwen/Qwen2.5-VL-3B-Instruct \
+    --model IDEA-Research/Rex-Omni \
     --quant_method bnb \
     --quant_bits 4 \
-    --output_dir Qwen2.5-VL-3B-Instruct-BNB-Int4
+    --output_dir IDEA-Research/Rex-Omni-BNB-Int4

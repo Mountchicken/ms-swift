@@ -1,18 +1,11 @@
-pip install "transformers==4.51.*"
-
-CUDA_VISIBLE_DEVICES=0 \
-MAX_PIXELS=1003520 \
-VIDEO_MAX_PIXELS=50176 \
-FPS_MAX_FRAMES=12 \
+MAX_PIXELS=2007040 \
 swift export \
-    --model Qwen/Qwen2.5-VL-3B-Instruct \
-    --dataset 'AI-ModelScope/alpaca-gpt4-data-zh#500' \
-              'AI-ModelScope/alpaca-gpt4-data-en#500' \
-              'modelscope/coco_2014_caption:validation#500' \
-              'swift/VideoChatGPT:Generic#500' \
+    --model IDEA-Research/Rex-Omni \
+    --model_type qwen2_5_vl \
+    --dataset 'work_dirs/quatilize.json' \
     --quant_n_samples 256 \
     --quant_batch_size -1 \
-    --max_length 2048 \
+    --max_length 4096 \
     --quant_method awq \
     --quant_bits 4 \
-    --output_dir Qwen2.5-VL-3B-Instruct-AWQ
+    --output_dir IDEA-Research/Rex-Omni-AWQ
